@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<!--
+  =====================================================================
+  index.html: THE STRUCTURE (the "skeleton") of Tiny Town
+  =====================================================================
+  Think of a website as a house:
+    - index.html = the walls and rooms (WHAT is on the page)
+    - style.css  = the paint and decoration (HOW it looks)
+    - script.js  = the electricity (what HAPPENS when you click things)
+
+  This file only lists the pieces of the page. It doesn't decide
+  colours (that's style.css) or behaviour (that's script.js).
+  Each piece has an "id" or "class" so the other two files can find it.
+  =====================================================================
+-->
+<html lang="en">
+<head>
+  <!-- "charset" tells the browser how to read letters and emojis correctly -->
+  <meta charset="UTF-8">
+
+  <!-- Makes the page fit phone screens instead of looking zoomed out -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- The text shown on the browser tab -->
+  <!-- The little icon on the browser tab: an emoji drawn inside a tiny SVG image -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏡</text></svg>">
+
+  <title>Tiny Town 🏡: your to-do list builds a village</title>
+
+  <!-- Google Fonts: we borrow two free fonts.
+       "Fredoka" = round, playful (headings). "Nunito" = soft and easy to read (body text). -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Connects our stylesheet (all the colours and layout live there) -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- ============ HEADER: town name + little stats ============ -->
+  <header class="top-bar">
+    <div class="town-title">
+      <span class="title-emoji">🏡</span>
+      <!-- An <input> so the user can rename their town by typing on it -->
+      <input id="townNameInput" class="town-name" maxlength="24" aria-label="Town name" value="Tiny Town">
+    </div>
+
+    <!-- Stats: script.js fills in the numbers inside the <b> tags -->
+    <div class="stats">
+      <span class="stat">📅 Day <b id="statDay">1</b></span>
+      <span class="stat">🏪 <b id="statShops">0</b> shops</span>
+      <span class="stat">🌷 <b id="statPlants">0</b> plants</span>
+      <span class="stat">🐾 <b id="statVillagers">0</b> neighbours</span>
+      <span class="stat">✅ <b id="statDone">0</b> tasks done</span>
+    </div>
+
+    <!-- Button that switches between Auto / Day / Night -->
+    <button id="dayNightBtn" class="pill-btn" title="Switch day / night">🌗 Auto</button>
+  </header>
+
+  <!-- ============ MAIN AREA: the town (left) + the to-do list (right) ============ -->
+  <main class="layout">
+
+    <!-- THE TOWN SCENE -->
+    <section class="scene-card">
+      <!-- This wrapper lets the town scroll sideways on small phones -->
+      <div class="scene-scroll">
+        <div id="scene" class="scene">
+          <!-- Layers, from back to front (like stacking transparent sheets): -->
+          <div class="night-overlay"></div>     <!-- dark blue tint at night -->
+          <div id="stars" class="stars"></div>  <!-- twinkling stars (made by script.js) -->
+          <div class="moon"></div>              <!-- the moon (only visible at night) -->
+          <div id="town" class="town"></div>    <!-- shops, plants and villagers go in here -->
+
+          <!-- Shown only when the town is still empty -->
+          <div id="emptySign" class="empty-sign">
+            <span>🪧</span>
+            <p>An empty meadow...<br>Finish a task to build your first building!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- The little key that explains which task builds what -->
+      <p class="legend">
+        🌱 Small task → a plant &nbsp;·&nbsp; 🏠 Medium task → a shop &nbsp;·&nbsp; 🏰 Big task → a shop <i>and</i> a new neighbour
+      </p>
+    </section>
+
+    <!-- THE TO-DO LIST -->
+    <aside class="panel">
+      <h2>Today's tasks</h2>
+
+      <!-- The "form" where you type a new task -->
+      <form id="taskForm" class="task-form">
+        <input id="taskInput" type="text" placeholder="e.g. Finish maths assignment" maxlength="80" autocomplete="off" required>
+
+        <!-- Three size buttons. "data-size" stores which size each one means. -->
+        <div class="size-picker" role="radiogroup" aria-label="Task size">
+          <button type="button" class="size-btn selected" data-size="small">🌱 Small</button>
+          <button type="button" class="size-btn" data-size="medium">🏠 Medium</button>
+          <button type="button" class="size-btn" data-size="big">🏰 Big</button>
+        </div>
+
+        <button type="submit" class="add-btn">+ Add task</button>
+      </form>
+
+      <!-- script.js puts each task inside these lists -->
+      <ul id="todoList" class="task-list"></ul>
+      <p id="noTasks" class="hint">No tasks yet. Add one above ✍️</p>
+
+      <h3 class="done-heading">Done 🎉</h3>
+      <ul id="doneList" class="task-list done"></ul>
+
+      <!-- Extra buttons at the bottom of the panel -->
+      <div class="panel-footer">
+        <button id="demoBtn" class="pill-btn">✨ Try demo tasks</button>
+        <button id="clearDoneBtn" class="pill-btn">🧹 Clear done</button>
+        <button id="resetBtn" class="pill-btn danger">↺ Start a new town</button>
+      </div>
+    </aside>
+  </main>
+
+  <!-- A small pop-up message ("toast") that slides in, e.g. "A new shop opened!" -->
+  <div id="toast" class="toast"></div>
+
+  <!-- ============ CREDITS: always credit the artists ============ -->
+  <footer class="credits">
+    <p><b>Art credits 🎨</b></p>
+    <p>Background landscape by <b>Tohad</b> (<a href="https://tohad.artstation.com" target="_blank" rel="noopener">tohad.artstation.com</a>)</p>
+    <p>Shopfronts by <b>Annelies Draws</b> ([Link])</p>
+    <p>Animal villagers by <b>[Artist name]</b> ([Link])</p>
+    <p>Potted plants by <b>[Artist name]</b> ([Link])</p>
+    <p class="small">Made with HTML, CSS &amp; JavaScript by [Your name] · Your town is saved only on this device 🔒</p>
+  </footer>
+
+  <!-- Load our JavaScript LAST, so all the HTML above already exists when it runs -->
+  <script src="script.js"></script>
+</body>
+</html>

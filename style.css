@@ -1,0 +1,433 @@
+/*
+  =====================================================================
+  style.css: HOW TINY TOWN LOOKS
+  =====================================================================
+  CSS works like this:
+      selector { property: value; }
+  The "selector" picks which HTML elements to style,
+  e.g.  .town  means "every element with class="town""
+        #scene means "the ONE element with id="scene"".
+
+  This file is ordered top to bottom like the page itself:
+    1. Colours & fonts (CSS variables)
+    2. Basic page setup
+    3. Header
+    4. Town scene (background, night, stars, buildings, villagers)
+    5. To-do panel
+    6. Toast, sparkles, credits
+    7. Phone screens
+  =====================================================================
+*/
+
+/* ---------------------------------------------------------------
+   1. CSS VARIABLES: our colour palette in ONE place
+   ---------------------------------------------------------------
+   A CSS variable is like a labelled paint pot. We name a colour once
+   (e.g. --cream) and use it everywhere with var(--cream).
+   Want a different colour? Change it HERE and the whole site updates.
+   These colours were picked from the art: the cream paper of the
+   shop drawings, the meadow green, the fence brown, the flower coral. */
+:root {
+  --cream:      #F8F1E7;  /* page background, like the drawing paper */
+  --paper:      #FFFBF4;  /* cards and panels */
+  --meadow:     #8DB43C;  /* fresh grass green: buttons and highlights */
+  --forest:     #3F6B2A;  /* deep tree green: headings */
+  --sky:        #4A8FE0;  /* bright sky blue: small accents */
+  --bark:       #7A5230;  /* fence brown: body text */
+  --coral:      #E8806A;  /* flower-pot coral: "big task" and warnings */
+  --butter:     #F6CF5A;  /* warm yellow: night window glow, stars */
+  --line:       #E6D9C3;  /* soft borders */
+  --night:      #1B2550;  /* night-sky navy */
+
+  --radius: 18px;                                  /* rounded corners everywhere */
+  --shadow: 0 6px 18px rgba(122, 82, 48, 0.15);    /* soft brown shadow */
+  --font-head: 'Fredoka', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+}
+
+/* ---------------------------------------------------------------
+   2. BASIC PAGE SETUP
+   --------------------------------------------------------------- */
+
+/* box-sizing: border-box makes widths include padding.
+   (Without it, a 100px box with 10px padding becomes 120px wide, which is confusing!) */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--bark);
+  background: var(--cream);
+  /* a very faint dotted pattern so the page doesn't feel flat */
+  background-image: radial-gradient(var(--line) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+h2, h3 { font-family: var(--font-head); color: var(--forest); margin: 0 0 12px; }
+
+/* Buttons and inputs don't inherit fonts by default, so we tell them to */
+button, input { font-family: inherit; }
+
+/* ---------------------------------------------------------------
+   3. HEADER (town name + stats)
+   --------------------------------------------------------------- */
+.top-bar {
+  display: flex;               /* flexbox puts children in a row */
+  flex-wrap: wrap;             /* ...and lets them wrap onto a new line if there's no space */
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+  max-width: 1300px;
+  margin: 0 auto;              /* "auto" left/right margins centre the bar */
+}
+
+.town-title { display: flex; align-items: center; gap: 8px; }
+.title-emoji { font-size: 2rem; }
+
+/* The town name looks like a heading, but it's secretly a text box you can type in */
+.town-name {
+  font-family: var(--font-head);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--forest);
+  background: transparent;
+  border: 2px dashed transparent;   /* invisible border... */
+  border-radius: 12px;
+  padding: 2px 8px;
+  width: 11ch;                       /* "ch" = width of one character */
+}
+.town-name:hover, .town-name:focus { border-color: var(--meadow); outline: none; } /* ...that appears on hover */
+
+.stats { display: flex; flex-wrap: wrap; gap: 8px; }
+.stat {
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;            /* a huge radius = a perfect pill shape */
+  padding: 5px 12px;
+  font-size: 0.9rem;
+}
+.stat b { color: var(--forest); }
+
+/* A reusable rounded "pill" button style */
+.pill-btn {
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-weight: 700;
+  color: var(--bark);
+  cursor: pointer;                  /* shows the hand cursor on hover */
+  transition: transform .15s, background .15s;  /* animate smoothly when these change */
+}
+.pill-btn:hover { background: #fff; transform: translateY(-2px); }  /* lifts up a little */
+.pill-btn.danger:hover { background: #FBE3DD; color: var(--coral); }
+
+/* ---------------------------------------------------------------
+   MAIN LAYOUT: town on the left, panel on the right
+   --------------------------------------------------------------- */
+/* CSS Grid divides space into columns.
+   "1fr 340px" = the town takes all the leftover space, the panel is 340px wide. */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 24px 24px;
+  align-items: start;
+}
+/* Grid items can grow to fit wide content (like our 720px town) and push the
+   page wider than a phone screen. min-width: 0 lets them shrink, so the town
+   scrolls sideways INSIDE its card instead. */
+.layout > * { min-width: 0; }
+
+/* ---------------------------------------------------------------
+   4. THE TOWN SCENE
+   --------------------------------------------------------------- */
+.scene-card {
+  background: var(--paper);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 12px;
+}
+
+/* On small screens the town is wider than the phone, so let it scroll sideways */
+.scene-scroll { overflow-x: auto; border-radius: 12px; }
+
+.scene {
+  position: relative;          /* children with position:absolute are placed INSIDE this box */
+  width: 100%;
+  min-width: 720px;            /* never squash the town smaller than this */
+  aspect-ratio: 16 / 9;        /* always keep the same shape as the painting */
+  background: url('assets/background.jpg') center / cover no-repeat;
+  border-radius: 12px;
+  overflow: hidden;            /* hide anything that goes outside the scene */
+}
+
+/* --- NIGHT TIME ---
+   The overlay is a dark-blue sheet on top of the painting.
+   In the day its opacity is 0 (invisible). When the scene gets the
+   class "night" (added by script.js), opacity goes up and it fades in. */
+.night-overlay {
+  position: absolute;
+  inset: 0;                    /* shortcut for top:0; right:0; bottom:0; left:0 = cover everything */
+  background: linear-gradient(to bottom, var(--night) 0%, rgba(27, 37, 80, .75) 55%, rgba(27, 37, 80, .55) 100%);
+  opacity: 0;
+  transition: opacity 1.5s ease;   /* fade slowly, like a real sunset */
+  z-index: 1;                       /* z-index = which layer is on top. Higher = closer to you. */
+  pointer-events: none;             /* clicks pass straight through it */
+}
+.scene.night .night-overlay { opacity: 1; }
+
+/* Stars: script.js creates many small <span class="star"> inside #stars */
+.stars { position: absolute; inset: 0 0 45% 0; z-index: 2; opacity: 0; transition: opacity 1.5s; pointer-events: none; }
+.scene.night .stars { opacity: 1; }
+.star {
+  position: absolute;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: var(--butter);
+  box-shadow: 0 0 6px var(--butter);
+  animation: twinkle 2.5s infinite ease-in-out;   /* use the "twinkle" animation below, forever */
+}
+/* @keyframes describes an animation step by step: at 0%, at 50%, at 100% of the time */
+@keyframes twinkle {
+  0%, 100% { opacity: .3; transform: scale(.8); }
+  50%      { opacity: 1;  transform: scale(1.2); }
+}
+
+/* The moon: a circle with a glow, plus an inner shadow that makes a crescent shape */
+.moon {
+  position: absolute;
+  top: 8%; right: 10%;
+  width: 7%; aspect-ratio: 1;
+  border-radius: 50%;
+  box-shadow: inset -14px 6px 0 0 #FFF4C9, 0 0 30px rgba(255, 244, 201, .6);
+  z-index: 2;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1.5s, transform 1.5s;
+}
+.scene.night .moon { opacity: 1; transform: translateY(0); }   /* the moon rises */
+
+/* The "town" layer holds every shop, plant and villager */
+.town { position: absolute; inset: 0; z-index: 5; }
+
+/* Every placed thing (shop, plant, villager) is an absolutely positioned image.
+   script.js sets its "left" and "bottom" so it lands in the right spot. */
+.thing {
+  position: absolute;
+  height: auto;                    /* keep the original proportions, never stretch */
+  filter: drop-shadow(0 4px 3px rgba(40, 50, 20, .35));   /* a little shadow on the grass */
+  transition: filter 1.5s;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.thing.shop     { width: 10%; transform-origin: bottom center; }
+.thing.shop.back { width: 8.5%; }  /* back row is a bit smaller, so it looks further away */
+.thing.plant    { width: 3.6%; }
+.thing.villager { width: 4.4%; }
+
+/* Gently "breathe" when you hover over a shop */
+.thing.shop:hover { transform: scale(1.06); transition: transform .2s; }
+
+/* At night: buildings get darker, but their windows "glow" warm yellow */
+.scene.night .thing { filter: brightness(.7) saturate(.85) drop-shadow(0 4px 3px rgba(0,0,0,.4)); }
+.scene.night .thing.shop { filter: brightness(.85) drop-shadow(0 0 10px rgba(246, 207, 90, .85)); }
+
+/* POP animation: plays once when something is newly built */
+.thing.pop { animation: pop .7s cubic-bezier(.34, 1.56, .64, 1); }   /* that cubic-bezier makes a bouncy overshoot */
+@keyframes pop {
+  0%   { transform: scale(0) translateY(30px); opacity: 0; }
+  100% { transform: scale(1) translateY(0);    opacity: 1; }
+}
+
+/* Villagers: the outer element slides left/right (script.js changes "left"),
+   the inner image does a little bounce, like walking. */
+.walker { position: absolute; transition-property: left; transition-timing-function: linear; }
+.walker img { width: 100%; display: block; animation: bob .45s infinite alternate ease-in-out; }
+.walker.resting img { animation: none; }        /* stop bouncing while standing still */
+@keyframes bob {
+  from { transform: translateY(0) rotate(-2deg); }
+  to   { transform: translateY(-6%) rotate(2deg); }
+}
+
+/* The sign shown when the town is still empty */
+.empty-sign {
+  position: absolute;
+  left: 50%; bottom: 14%;
+  transform: translateX(-50%);    /* moves it back by half its own width = perfectly centred */
+  z-index: 6;
+  background: var(--paper);
+  border: 3px solid var(--bark);
+  border-radius: 14px;
+  padding: 10px 18px;
+  text-align: center;
+  font-family: var(--font-head);
+  box-shadow: var(--shadow);
+}
+.empty-sign span { font-size: 1.6rem; }
+.empty-sign p { margin: 4px 0 0; }
+.empty-sign.hidden { display: none; }
+
+.legend { text-align: center; font-size: .88rem; margin: 10px 0 2px; opacity: .85; }
+
+/* ---------------------------------------------------------------
+   5. THE TO-DO PANEL
+   --------------------------------------------------------------- */
+.panel {
+  background: var(--paper);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  position: sticky;            /* the panel stays in view while you scroll */
+  top: 16px;
+}
+
+.task-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+
+#taskInput {
+  padding: 11px 14px;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  font-size: 1rem;
+  background: #fff;
+  color: var(--bark);
+}
+#taskInput:focus { outline: none; border-color: var(--meadow); }
+
+.size-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.size-btn {
+  padding: 8px 4px;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  font-weight: 700;
+  color: var(--bark);
+  cursor: pointer;
+  transition: all .15s;
+}
+.size-btn:hover { border-color: var(--meadow); }
+/* The "selected" class is added by script.js to the chosen size */
+.size-btn.selected { background: var(--meadow); border-color: var(--meadow); color: #fff; transform: translateY(-2px); }
+
+.add-btn {
+  padding: 11px;
+  border: none;
+  border-radius: 12px;
+  background: var(--forest);
+  color: #fff;
+  font-family: var(--font-head);
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: transform .15s, background .15s;
+}
+.add-btn:hover { background: #335921; transform: translateY(-2px); }
+.add-btn:active { transform: scale(.97); }
+
+/* Remove the default bullet points from lists */
+.task-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+
+.task {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 9px 10px;
+  animation: slideIn .3s ease;
+}
+@keyframes slideIn { from { opacity: 0; transform: translateX(15px); } to { opacity: 1; transform: none; } }
+
+/* The round tick button */
+.check {
+  flex-shrink: 0;                 /* don't let it get squashed */
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 2.5px solid var(--meadow);
+  background: #fff;
+  cursor: pointer;
+  font-size: .8rem;
+  color: #fff;
+  transition: background .15s;
+}
+.check:hover { background: #EEF5DF; }
+.task.done .check { background: var(--meadow); cursor: default; }
+
+.task-text { flex: 1; word-break: break-word; }   /* flex:1 = take all the spare space */
+.task.done .task-text { text-decoration: line-through; opacity: .6; }
+
+/* Small coloured label showing the task size */
+.tag { font-size: .72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.tag.small  { background: #EEF5DF; color: var(--forest); }
+.tag.medium { background: #FFF3CC; color: #8A6A10; }
+.tag.big    { background: #FBE3DD; color: #B5513B; }
+
+.delete {
+  border: none; background: none; cursor: pointer;
+  font-size: 1rem; opacity: .4; padding: 2px 4px;
+}
+.delete:hover { opacity: 1; }
+
+.hint { font-size: .9rem; opacity: .7; margin: 6px 0; }
+.hint.hidden { display: none; }
+.done-heading { margin-top: 20px; font-size: 1.05rem; }
+
+.panel-footer { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; padding-top: 14px; border-top: 1.5px dashed var(--line); }
+.panel-footer .pill-btn { font-size: .82rem; }
+
+/* ---------------------------------------------------------------
+   6. TOAST, SPARKLES, CREDITS
+   --------------------------------------------------------------- */
+/* The toast hides below the screen and slides up when it gets the class "show" */
+.toast {
+  position: fixed;              /* "fixed" = stays in the same spot even when you scroll */
+  left: 50%; bottom: 24px;
+  transform: translate(-50%, 150px);
+  background: var(--forest);
+  color: #fff;
+  font-family: var(--font-head);
+  font-size: 1.05rem;
+  padding: 12px 22px;
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+  transition: opacity .3s, transform .4s cubic-bezier(.34, 1.56, .64, 1);
+  z-index: 100;
+  max-width: 90vw;
+  text-align: center;
+  opacity: 0;                      /* fully invisible while hidden */
+}
+.toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+/* Sparkles: little ✨ that fly outwards when something is built.
+   script.js gives each one its own direction using --dx and --dy. */
+.sparkle {
+  position: absolute;
+  z-index: 50;
+  font-size: 1.3rem;
+  pointer-events: none;
+  animation: burst .9s ease-out forwards;   /* "forwards" = stay at the last frame */
+}
+@keyframes burst {
+  0%   { transform: translate(-50%, -50%) scale(.3); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.1); opacity: 0; }
+}
+
+.credits { text-align: center; font-size: .85rem; padding: 10px 20px 30px; opacity: .85; }
+.credits p { margin: 3px 0; }
+.credits a { color: var(--forest); }
+.credits .small { margin-top: 10px; font-size: .78rem; }
+
+/* ---------------------------------------------------------------
+   7. PHONE SCREENS
+   ---------------------------------------------------------------
+   A "media query" applies these rules ONLY when the screen is
+   narrower than 900px. This is how one website works on phones AND laptops. */
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; padding: 0 12px 20px; }  /* one column: town on top, panel below */
+  .top-bar { padding: 12px; }
+  .town-name { font-size: 1.5rem; }
+  .panel { position: static; }
+}
